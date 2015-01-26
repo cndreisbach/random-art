@@ -49,17 +49,17 @@ def generate_rgb_image(red_exp, green_exp, blue_exp, width=300):
     return Image.merge("RGB", (red_image, green_image, blue_image))
 
 
-def make_gray(num_pics=1):
+def make_gray(num_pics=1, width=300):
     """Creates n grayscale image files named gray0.png, gray1.png, ..."""
     for i in range(num_pics):
         filename = "gray{}.png".format(i)
         gray_exp = create_expression()
         print("{}: {}".format(filename, gray_exp))
-        image = generate_monochrome_image(gray_exp)
+        image = generate_monochrome_image(gray_exp, width)
         image.save(filename, "PNG")
 
 
-def make_color(num_pics=1):
+def make_color(num_pics=1, width=300):
     """Creates n color image files named color0.png, color1.png, ..."""
     random.seed()
     for i in range(num_pics):
@@ -71,14 +71,16 @@ def make_color(num_pics=1):
                                                                red_exp,
                                                                green_exp,
                                                                blue_exp))
-        image = generate_rgb_image(red_exp, green_exp, blue_exp)
+        image = generate_rgb_image(red_exp, green_exp, blue_exp, width)
         image.save(filename, "PNG")
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Create random art.')
-    parser.add_argument('--seed', type=int,
+    parser.add_argument('-S', '--seed', type=int,
                         help="Set the seed for the random number generator.")
+    parser.add_argument('-s', '--size', type=int, default=300,
+                        help="Number of pixels for each side of the square.")
     parser.add_argument('-n', '--number', type=int, default=1,
                         help="Generate N images.")
     parser.add_argument('--color', action='store_true',
@@ -99,7 +101,7 @@ if __name__ == '__main__':
     print("Seed: {}".format(seed))
 
     if args.color:
-        make_color(args.number)
+        make_color(args.number, args.size)
 
     if args.gray:
-        make_gray(args.number)
+        make_gray(args.number, args.size)
