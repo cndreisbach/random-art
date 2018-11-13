@@ -3,7 +3,6 @@
 # Script to generate random art.
 # Adapted by Clinton Dreisbach from code by Chris Stone and Andrew Farmer.
 
-
 import argparse
 import random
 import sys
@@ -11,9 +10,12 @@ from PIL import Image
 from random_art import create_expression, run_expression
 
 
-def generate_monochrome_image(expression, width=300):
+def generate_monochrome_image(expression,
+                              width=300,
+                              height=300,
+                              min_intensity=0,
+                              max_intensity=255):
     """Return a grayscale image of the given expression."""
-    height = width
 
     def convert_coords(x, y):
         """Convert absolute coordinates to relative coords
@@ -25,8 +27,8 @@ def generate_monochrome_image(expression, width=300):
         return (rx, ry)
 
     def scale_intensity(rel_intensity):
-        """Convert a relative intensity from [-1, 1] to [0,255]."""
-        return int(rel_intensity * 127.5 + 127.5)
+        multiplier = (max_intensity - min_intensity) / 2
+        return int((rel_intensity + 1) * multiplier) + min_intensity
 
     image = Image.new("L", (width, height))
 
@@ -43,56 +45,102 @@ def generate_monochrome_image(expression, width=300):
     return image
 
 
-def generate_rgb_image(red_exp, green_exp, blue_exp, width=300):
-    red_image = generate_monochrome_image(red_exp, width)
-    green_image = generate_monochrome_image(green_exp, width)
-    blue_image = generate_monochrome_image(blue_exp, width)
+def generate_rgb_image(red_exp, green_exp, blue_exp, width=300, height=300):
+    red_image = generate_monochrome_image(
+        red_exp, width, height, max_intensity=random.triangular(1, 255, 220))
+    green_image = generate_monochrome_image(
+        green_exp, width, height, max_intensity=random.triangular(1, 255, 220))
+    blue_image = generate_monochrome_image(
+        blue_exp, width, height, max_intensity=random.triangular(1, 255, 220))
     return Image.merge("RGB", (red_image, green_image, blue_image))
 
 
-def make_gray(seed, num_pics=1, width=300):
+def generate_cmyk_image(cyan_exp,
+                        magenta_exp,
+                        yellow_exp,
+                        black_exp,
+                        width=300,
+                        height=300):
+    cyan_image = generate_monochrome_image(
+        cyan_exp, width, height, max_intensity=random.randint(150, 255))
+    magenta_image = generate_monochrome_image(
+        magenta_exp, width, height, max_intensity=random.randint(150, 255))
+    yellow_image = generate_monochrome_image(
+        yellow_exp, width, height, max_intensity=random.randint(150, 255))
+    black_image = generate_monochrome_image(
+        black_exp, width, height, max_intensity=random.randint(1, 50))
+    return Image.merge("CMYK",
+                       (cyan_image, magenta_image, yellow_image, black_image))
+
+
+def make_gray(seed, num_pics=1, width=300, height=300):
     """Creates n grayscale image files named gray0.png, gray1.png, ..."""
     random.seed(seed)
     for i in range(num_pics):
         filename = "gray-{}-{}.png".format(seed, i)
         gray_exp = create_expression()
         print("{}: {}".format(filename, gray_exp))
-        image = generate_monochrome_image(gray_exp, width)
+        image = generate_monochrome_image(gray_exp, width, height)
         image.save(filename, "PNG")
 
 
-def make_color(seed, num_pics=1, width=300):
+def make_rgb(seed, num_pics=1, width=300, height=300):
     """Creates n color image files named color0.png, color1.png, ..."""
     random.seed(seed)
     for i in range(num_pics):
-        filename = "color-{}-{}.png".format(seed, i)
+        filename = "rgb-{}-{}.png".format(seed, i)
         red_exp = create_expression()
         green_exp = create_expression()
         blue_exp = create_expression()
-        print("{}:\n  red: {}\n  green: {}\n  blue: {}".format(filename,
-                                                               red_exp,
-                                                               green_exp,
-                                                               blue_exp))
-        image = generate_rgb_image(red_exp, green_exp, blue_exp, width)
+        print("{}:\n  red: {}\n  green: {}\n  blue: {}".format(
+            filename, red_exp, green_exp, blue_exp))
+        image = generate_rgb_image(red_exp, green_exp, blue_exp, width, height)
+
+        image.save(filename, "PNG")
+
+
+def make_cmyk(seed, num_pics=1, width=300, height=300):
+    """Creates n color image files named cmyk0.png, cmyk1.png, ..."""
+    random.seed(seed)
+    for i in range(num_pics):
+        filename = "cmyk-{}-{}.png".format(seed, i)
+        cyan_exp = create_expression()
+        magenta_exp = create_expression()
+        yellow_exp = create_expression()
+        black_exp = create_expression()
+        print(
+            "{}:\n  cyan: {}\n  magenta: {}\n  yellow: {}\n  black: {}".format(
+                filename, cyan_exp, magenta_exp, yellow_exp, black_exp))
+        image = generate_cmyk_image(cyan_exp, magenta_exp, yellow_exp,
+                                    black_exp, width, height).convert("RGB")
         image.save(filename, "PNG")
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Create random art.')
-    parser.add_argument('-S', '--seed', type=int,
-                        help="Set the seed for the random number generator.")
-    parser.add_argument('-s', '--size', type=int, default=300,
-                        help="Number of pixels for each side of the square.")
-    parser.add_argument('-n', '--number', type=int, default=1,
-                        help="Generate N images.")
-    parser.add_argument('--color', action='store_true',
-                        help="Generate color images (default).")
-    parser.add_argument('--gray', action='store_true',
-                        help="Generate grayscale images.")
+    parser.add_argument(
+        '-S',
+        '--seed',
+        type=int,
+        help="Set the seed for the random number generator.")
+    parser.add_argument(
+        '-s',
+        '--size',
+        type=str,
+        default='300',
+        help="Number of pixels for each side of the square.")
+    parser.add_argument(
+        '-n', '--number', type=int, default=1, help="Generate N images.")
+    parser.add_argument(
+        '--rgb', action='store_true', help="Generate RGB images (default).")
+    parser.add_argument(
+        '--gray', action='store_true', help="Generate grayscale images.")
+    parser.add_argument(
+        '--cmyk', action='store_true', help="Generate CMYK images.")
 
     args = parser.parse_args()
-    if not (args.color or args.gray):
-        args.color = True
+    if not (args.rgb or args.gray or args.cmyk):
+        args.rgb = True
 
     if args.seed:
         seed = args.seed
@@ -102,8 +150,19 @@ if __name__ == '__main__':
     random.seed(seed)
     print("Seed: {}".format(seed))
 
-    if args.color:
-        make_color(seed, args.number, args.size)
+    if args.size.isdigit():
+        width = int(args.size)
+        height = int(args.size)
+    elif args.size and "x" in args.size:
+        width, height = [int(n) for n in args.size.split("x")]
+    else:
+        width = height = 300
+
+    if args.cmyk:
+        make_cmyk(seed, args.number, width, height)
+
+    if args.rgb:
+        make_rgb(seed, args.number, width, height)
 
     if args.gray:
-        make_gray(seed, args.number, args.size)
+        make_gray(seed, args.number, width, height)
