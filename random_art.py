@@ -12,99 +12,113 @@ def modsquad(m, n):
     else:
         return (m / n) % 1
 
+
 def constrain(n):
     return max(min(n, 1), -1)
-        
 
 
 class Expression:
-    methods = {
-        "sin": {
-            "weight": 10,
-            "method": lambda n: sin(pi * n)
-        },
-        "cos": {
-            "weight": 10,
-            "method": lambda n: cos(pi * n)
-        },
-        "avg": {
-            "weight": 7,
-            "arity": 2,
-            "method": lambda m, n: (m + n) / 2
-        },
-        "band1": {
-            "method": lambda n: round(n, 1),
-            "weight": 3,
-        },
-        "band2": {
-            "method": lambda n: round(n, 2),
-            "weight": 2,
-        },
-        "triplethreat": {
-            "method": lambda n: n * 3 % 1,
-            "weight": 3
-        },
-        "seventhheaven": {
-            "method": lambda n: n * 7 % 1,
-            "weight": 3
-        },
-        "modsquad": {
-            "method": modsquad,
-            "arity": 2,
-            "weight": 3
-        },
-        "sincos": {
-            "method": lambda n: sin(pi * n) if n < 0 else cos(pi * n)
-        },
-        "cossin": {
-            "method": lambda n: sin(pi * n) if n > 0 else cos(pi * n)
-        },
-        "sqrt": {
-            "method": lambda n: copysign(pow(fabs(n), 0.5), n)
-        },
-        "square": {
-            "method": lambda n: pow(n, 2),
-            "weight": 5,
-        },
-        "cube": {
-            "weight": 1,
-            "method": lambda n: pow(n, 3)
-        },
-        "prod": {
-            "arity": 2,
-            "method": lambda m, n: m * n
-        },
-        "half": {
-            "method": lambda n: n / 2,
-            "weight": 2
-        },
-        "double": {
-            "method": lambda n: n * 2 if fabs(n) < 0.5 else n
-        },
-        "neg": {
-            "method": lambda n: -n
-        },
-        "flip": {
-            "method": lambda n: copysign(1 - fabs(n), -n)
-        },
-        "invert": {
-            "method": lambda n: copysign((1 / n) % 1, n) if n != 0 else n
-        },
-        "shiftleft": {
-            "method": lambda n: (10 * n) % 1
-        },
-        "shiftright": {
-            "method": lambda n: n / 10
-        },
-        "rotate": {
-            "method": lambda n: n - 1 if n > 0 else n + 1
-        }
-    }
-
     def __init__(self):
         self.randx = random.uniform(-1, 1)
-        self.randy = random.uniform(-1, 1)        
+        self.randy = random.uniform(-1, 1)
         self.commands = []
+        self.methods = {
+            "sin": {
+                "weight": 10,
+                "method": lambda n: sin(pi * n)
+            },
+            "cos": {
+                "weight": 10,
+                "method": lambda n: cos(pi * n)
+            },
+            "sintimes": {
+                "arity": 2,
+                "method": lambda m, n: sin(m * n * pi)
+            },
+            "sindiv": {
+                "arity": 2,
+                "method": lambda m, n: sin(m / (n or 1) * pi)
+            },
+            "costimes": {
+                "arity": 2,
+                "method": lambda m, n: cos(m * n * pi)
+            },
+            "cosdiv": {
+                "arity": 2,
+                "method": lambda m, n: cos(m / (n or 1) * pi)
+            },
+            "max": {
+                "arity": 2,
+                "method": lambda m, n: m if m > n else n
+            },
+            "avg": {
+                "weight": 7,
+                "arity": 2,
+                "method": lambda m, n: (m + n) / 2
+            },
+            "band1": {
+                "method": lambda n: round(n, 1),
+                "weight": 3,
+            },
+            "band2": {
+                "method": lambda n: round(n, 2),
+                "weight": 2,
+            },
+            "triplethreat": {
+                "method": lambda n: n * 3 % 1,
+                "weight": 3
+            },
+            "seventhheaven": {
+                "method": lambda n: n * 7 % 1,
+                "weight": 3
+            },
+            "shiftleft": {
+                "method": lambda n: (10 * n) % 1
+            },
+            "shiftright": {
+                "method": lambda n: n / 10
+            },
+            "modsquad": {
+                "method": modsquad,
+                "arity": 2,
+                "weight": 3
+            },
+            "sincos": {
+                "method": lambda n: sin(pi * n) if n < 0 else cos(pi * n)
+            },
+            "cossin": {
+                "method": lambda n: sin(pi * n) if n > 0 else cos(pi * n)
+            },
+            "sqrt": {
+                "method": lambda n: copysign(pow(fabs(n), 0.5), n)
+            },
+            "square": {
+                "method": lambda n: pow(n, 2),
+                "weight": 5,
+            },
+            "cube": {
+                "weight": 1,
+                "method": lambda n: pow(n, 3)
+            },
+            "prod": {
+                "arity": 2,
+                "method": lambda m, n: m * n
+            },
+            "half": {
+                "method": lambda n: n / 2,
+                "weight": 2
+            },
+            "neg": {
+                "method": lambda n: -n
+            },
+            "invert": {
+                "method": lambda n: copysign((1 / n) % 1, n) if n != 0 else n
+            },
+            "rotate": {
+                "method": lambda n: n - 1 if n > 0 else n + 1
+            }
+        }
+
 
     def random(self):
         fns = []
@@ -137,7 +151,6 @@ class Expression:
                 ]
                 return self.methods[commands[0]]["method"](*args)
             elif isinstance(commands, str):
-                # rand = random.random()
                 randx = constrain(x + self.randx)
                 randy = constrain(y + self.randy)
                 xy = x * y
@@ -156,6 +169,9 @@ class Expression:
                 return str(commands)
 
         return sexp(self.commands)
+
+    def __repr__(self):
+        return str(self)
 
 
 def create_expression():
