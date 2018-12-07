@@ -8,7 +8,7 @@ for each color channel, which it then runs with the x and y coordinates of each 
 I'm super-glad you asked! It takes an `x` and `y` value and returns a new
 value between -1.0 and 1.0. It nests functions to create unexpected values.
 
-![random1](random1.png)
+![random1](examples/random1.png)
 
 This image was created with the following expression:
 
