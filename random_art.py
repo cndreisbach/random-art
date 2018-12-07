@@ -16,6 +16,16 @@ def modsquad(m, n):
 def constrain(n):
     return max(min(n, 1), -1)
 
+def create_flipper():
+    value = 1
+
+    def flipper():
+        nonlocal value
+        value = -1 if value == 1 else 1
+        return value
+
+    return flipper
+
 
 class Expression:
     def __init__(self):
@@ -116,9 +126,12 @@ class Expression:
             },
             "rotate": {
                 "method": lambda n: n - 1 if n > 0 else n + 1
+            },
+            "flipper": {
+                "method": create_flipper(),
+                "arity": 0
             }
         }
-
 
     def random(self):
         fns = []

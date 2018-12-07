@@ -9,6 +9,7 @@ pillow = "*"
 [dev-packages]
 "flake8" = "*"
 yapf = "*"
+prospector = "*"
 
 [requires]
 python_version = "3.7"
